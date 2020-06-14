@@ -121,9 +121,7 @@ func read(filename, search, replace string) ([]string, error) {
 	s := bufio.NewScanner(file)
 	s.Split(bufio.ScanLines)
 
-	lineNum := 0
-
-	for s.Scan() {
+	for lineNum := 0; s.Scan(); lineNum++ {
 		t := strings.Replace(s.Text(), search, replace, -1)
 		contents = append(contents, t)
 
@@ -131,8 +129,6 @@ func read(filename, search, replace string) ([]string, error) {
 			newChangedLine := changedLine{lineNum, s.Text(), t}
 			changedFiles[filename] = append(changedFiles[filename], newChangedLine)
 		}
-
-		lineNum++
 	}
 	file.Close()
 
