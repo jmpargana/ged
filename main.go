@@ -28,6 +28,7 @@ var (
 	// all the flags come here
 	verbose      = flag.Bool("v", true, "output changes to user")
 	changedFiles = make(map[string][]changedLine)
+	mutex        = new(sync.Mutex)
 )
 
 func main() {
@@ -112,6 +113,7 @@ func fileOrDir(filename string) ([]string, error) {
 
 func read(filename, search, replace string) ([]string, error) {
 	var contents []string
+	changedLines := make([]changedLine, 0) // maybe should allocate some space
 
 	file, err := os.Open(filename)
 	if err != nil {
@@ -126,11 +128,16 @@ func read(filename, search, replace string) ([]string, error) {
 		contents = append(contents, t)
 
 		if t != s.Text() && *verbose {
-			newChangedLine := changedLine{lineNum, s.Text(), t}
-			changedFiles[filename] = append(changedFiles[filename], newChangedLine)
+			changedLines = append(changedLines, changedLine{lineNum, s.Text(), t})
 		}
 	}
 	file.Close()
+
+	if len(changedLines) != 0 {
+		mutex.Lock()
+		changedFiles[filename] = changedLines
+		mutex.Unlock()
+	}
 
 	return contents, nil
 }
