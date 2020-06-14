@@ -27,6 +27,10 @@ const (
 var (
 	// all the flags come here
 	verbose      = flag.Bool("v", true, "output changes to user")
+	regex        = flag.Bool("r", false, "search text is regex expandable")
+	matchPerLine = flag.Int("m", -1, "matches per line (by default all entries changes)")
+	line         = flag.Int("l", -1, "change only on given line")
+	lineRange    = flag.String("lr", ":", "change between range of lines")
 	changedFiles = make(map[string][]changedLine)
 	mutex        = new(sync.Mutex)
 )
