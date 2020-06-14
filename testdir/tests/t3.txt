@@ -1,10 +1,10 @@
- machinaa 1
+ a a 1
 
 
 
 
-two  machinaa
+two  a a
 
 
 
- machinaa 1
+ a a 1

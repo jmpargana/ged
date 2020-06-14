@@ -1,12 +1,12 @@
- machinaa 1
+ a a 1
 
-two  machinaa
-two  machinaa
- machinaa 1
-
-
- machinaa 1
- machinaa 1
+two  a a
+two  a a
+ a a 1
 
 
- machinaa 1
+ a a 1
+ a a 1
+
+
+ a a 1

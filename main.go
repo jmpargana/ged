@@ -127,12 +127,12 @@ func read(filename, search, replace string) ([]string, error) {
 		t := strings.Replace(s.Text(), search, replace, -1)
 		contents = append(contents, t)
 
-		if t != s.Text() {
+		if t != s.Text() && *verbose {
 			newChangedLine := changedLine{lineNum, s.Text(), t}
 			changedFiles[filename] = append(changedFiles[filename], newChangedLine)
 		}
-		lineNum++
 
+		lineNum++
 	}
 	file.Close()
 
