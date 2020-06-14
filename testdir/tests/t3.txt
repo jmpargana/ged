@@ -1,10 +1,10 @@
- machinaAMPLE one
+ machinaa 1
 
 
 
 
-2  machinaAMPLE
+two  machinaa
 
 
 
- machinaAMPLE one
+ machinaa 1

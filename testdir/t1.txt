@@ -1,12 +1,12 @@
- ExAMPLE one
- ExAMPLE one
- ExAMPLE one
- ExAMPLE one
-2  ExAMPLE
-2  ExAMPLE
-2  ExAMPLE
-2  ExAMPLE
- ExAMPLE one
- ExAMPLE one
- ExAMPLE one
- ExAMPLE one
+the apple 1
+the apple 1
+the apple 1
+the apple 1
+two the apple
+two the apple
+two the apple
+two the apple
+the apple 1
+the apple 1
+the apple 1
+the apple 1

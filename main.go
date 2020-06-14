@@ -10,13 +10,24 @@ import (
 	"sync"
 )
 
-type Color string
+type color string
+
+type changedLine struct {
+	line          int
+	before, after string
+}
 
 const (
-	BLUE  Color = "\u001b[34m"
+	BLUE  color = "\u001b[34m"
 	RED         = "\u001b[31m"
 	GREEN       = "\u001b[32m"
 	BLACK       = "\u001b[0m"
+)
+
+var (
+	// all the flags come here
+	verbose      = flag.Bool("v", true, "output changes to user")
+	changedFiles = make(map[string][]changedLine)
 )
 
 func main() {
@@ -49,6 +60,10 @@ func run() error {
 	}
 
 	wg.Wait()
+
+	if *verbose {
+		printChanges()
+	}
 
 	return nil
 }
@@ -108,16 +123,14 @@ func read(filename, search, replace string) ([]string, error) {
 
 	lineNum := 0
 
-	fmt.Printf("\n%s%s%s\n", BLUE, filename, BLACK)
-
 	for s.Scan() {
 		t := strings.Replace(s.Text(), search, replace, -1)
 		contents = append(contents, t)
 
 		if t != s.Text() {
-			fmt.Printf("%s%d: %s%s\t\t\t%s%s\n%s", BLUE, lineNum, RED, s.Text(), GREEN, t, BLACK)
+			newChangedLine := changedLine{lineNum, s.Text(), t}
+			changedFiles[filename] = append(changedFiles[filename], newChangedLine)
 		}
-
 		lineNum++
 
 	}
@@ -143,4 +156,14 @@ func write(filename string, contents []string) error {
 	file.Close()
 
 	return nil
+}
+
+func printChanges() {
+	for key, value := range changedFiles {
+		fmt.Printf("\n%s%s%s\n", BLUE, key, BLACK)
+
+		for _, line := range value {
+			fmt.Printf("%d:\t%s%s\t\t\t%s%s%s\n", line.line, RED, line.before, GREEN, line.after, BLACK)
+		}
+	}
 }
