@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"errors"
 	"flag"
 	"fmt"
 	"os"
@@ -25,25 +26,30 @@ const (
 )
 
 var (
-	// all the flags come here
-	verbose      = flag.Bool("v", true, "output changes to user")
+	verbose      = flag.Bool("v", false, "output changes to user")
 	regex        = flag.Bool("r", false, "search text is regex expandable")
-	matchPerLine = flag.Int("m", -1, "matches per line (by default all entries changes)")
-	line         = flag.Int("l", -1, "change only on given line")
-	lineRange    = flag.String("lr", ":", "change between range of lines")
+	occurences   = flag.Int("o", -1, "occurences per line (by default all entries changes)")
 	changedFiles = make(map[string][]changedLine)
 	mutex        = new(sync.Mutex)
+	// line         = flag.Int("l", -1, "change only on given line")
+	// lineRange    = flag.String("lr", ":", "change between range of lines")
 )
 
 func main() {
+	flag.Usage = func() {
+		fmt.Printf("Usage:\n")
+		fmt.Printf("\t%s [SEARCH] [REPLACE] file1 file2 dir1 ...\n\n", os.Args[0])
+		flag.PrintDefaults()
+	}
 	if err := run(); err != nil {
-		fmt.Fprintf(os.Stderr, "%v\n", err)
+		flag.Usage()
+		fmt.Fprintf(os.Stderr, "\n%v\n", err)
 		os.Exit(1)
 	}
 }
 
-func run() error {
-	flag.Parse()
+// load both remaining arguments to command as well as passed over stdin
+func loadArgs() []string {
 	args := flag.Args()
 
 	stat, _ := os.Stdin.Stat()
@@ -52,6 +58,17 @@ func run() error {
 		for scanner.Scan() {
 			args = append(args, scanner.Text())
 		}
+	}
+	return args
+}
+
+func run() error {
+	flag.Parse()
+
+	args := loadArgs()
+
+	if len(args) < 3 {
+		return errors.New("you need to run this script with at least one file")
 	}
 
 	search := args[0]
@@ -128,13 +145,14 @@ func read(filename, search, replace string) ([]string, error) {
 	s.Split(bufio.ScanLines)
 
 	for lineNum := 0; s.Scan(); lineNum++ {
-		t := strings.Replace(s.Text(), search, replace, -1)
+		t := strings.Replace(s.Text(), search, replace, *occurences)
 		contents = append(contents, t)
 
 		if t != s.Text() && *verbose {
 			changedLines = append(changedLines, changedLine{lineNum, s.Text(), t})
 		}
 	}
+
 	file.Close()
 
 	if len(changedLines) != 0 {
