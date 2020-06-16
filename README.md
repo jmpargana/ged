@@ -9,7 +9,10 @@ in go.
 With ged you can search and replace any number of occurrences in a line, you can give line ranges or just one line with the commands -o, -lr and -l respectfully.
 You can also use expandable regular expression when using the flag -r and -v will give a colorful output of the changes made, file by file.
 
-Installation:
+Currently when running the program with very large files (2M+ lines), the *sed*
+program beats *ged* in terms of performance for about 1 second, but when running with multiple files concurrently (5+) they average out, and eventually *ged* becames a faster solution.
+
+## Installation:
 
 ```sh
 go get github.com/jmpargana/ged
