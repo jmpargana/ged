@@ -29,9 +29,9 @@ var (
 	verbose      = flag.Bool("v", false, "output changes to user")
 	regex        = flag.Bool("r", false, "search text is regex expandable")
 	occurences   = flag.Int("o", -1, "occurences per line (by default all entries changes)")
+	line         = flag.Int("l", -1, "change only on given line")
 	changedFiles = make(map[string][]changedLine)
 	mutex        = new(sync.Mutex)
-	// line         = flag.Int("l", -1, "change only on given line")
 	// lineRange    = flag.String("lr", ":", "change between range of lines")
 )
 
@@ -145,6 +145,10 @@ func read(filename, search, replace string) ([]string, error) {
 	s.Split(bufio.ScanLines)
 
 	for lineNum := 0; s.Scan(); lineNum++ {
+		if *line != -1 && *line != lineNum+1 {
+			contents = append(contents, s.Text())
+			continue
+		}
 		t := strings.Replace(s.Text(), search, replace, *occurences)
 		contents = append(contents, t)
 
