@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 	"sync"
@@ -36,6 +37,7 @@ var (
 	mutex        = new(sync.Mutex)
 	start        = 0
 	end          = -1
+	re           *regexp.Regexp
 )
 
 func main() {
@@ -61,10 +63,12 @@ func run() error {
 	if err := parseLineRange(); err != nil {
 		return err
 	}
-
 	search := args[0]
 	replace := args[1]
 
+	if *regex {
+		re = regexp.MustCompile(search)
+	}
 	wg := new(sync.WaitGroup)
 	for _, filename := range args[2:] {
 		wg.Add(1)
@@ -156,14 +160,19 @@ func read(filename, search, replace string) ([]string, error) {
 			contents = append(contents, s.Text())
 			continue
 		}
-		t := strings.Replace(s.Text(), search, replace, *occurences)
+		t := ""
+
+		if *regex {
+			t = re.ReplaceAllString(s.Text(), replace)
+		} else {
+			t = strings.Replace(s.Text(), search, replace, *occurences)
+		}
 		contents = append(contents, t)
 
 		if t != s.Text() && *verbose {
 			changedLines = append(changedLines, changedLine{lineNum, s.Text(), t})
 		}
 	}
-
 	file.Close()
 
 	if len(changedLines) != 0 {
@@ -171,7 +180,6 @@ func read(filename, search, replace string) ([]string, error) {
 		changedFiles[filename] = changedLines
 		mutex.Unlock()
 	}
-
 	return contents, nil
 }
 
@@ -186,7 +194,6 @@ func write(filename string, contents []string) error {
 		if err := w.WriteByte(byte('\n')); err != nil {
 			return err
 		}
-
 		w.Flush()
 	}
 	file.Close()
@@ -199,7 +206,7 @@ func printChanges() {
 		fmt.Printf("\n%s%s%s\n", BLUE, key, BLACK)
 
 		for _, line := range value {
-			fmt.Printf("%d:\t%s%s\t\t\t%s%s%s\n", line.line, RED, line.before, GREEN, line.after, BLACK)
+			fmt.Printf("%d:\t%s%s\t\t%s%s%s\n", line.line, RED, line.before, GREEN, line.after, BLACK)
 		}
 	}
 }
