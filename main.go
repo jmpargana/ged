@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"sync"
 )
@@ -30,9 +31,11 @@ var (
 	regex        = flag.Bool("r", false, "search text is regex expandable")
 	occurences   = flag.Int("o", -1, "occurences per line (by default all entries changes)")
 	line         = flag.Int("l", -1, "change only on given line")
+	lineRange    = flag.String("lr", ":", "change between range of lines")
 	changedFiles = make(map[string][]changedLine)
 	mutex        = new(sync.Mutex)
-	// lineRange    = flag.String("lr", ":", "change between range of lines")
+	start        = 0
+	end          = -1
 )
 
 func main() {
@@ -48,7 +51,33 @@ func main() {
 	}
 }
 
-// load both remaining arguments to command as well as passed over stdin
+func run() error {
+	flag.Parse()
+	args := loadArgs()
+
+	if len(args) < 3 {
+		return errors.New("you need to run this script with at least one file")
+	}
+	if err := parseLineRange(); err != nil {
+		return err
+	}
+
+	search := args[0]
+	replace := args[1]
+
+	wg := new(sync.WaitGroup)
+	for _, filename := range args[2:] {
+		wg.Add(1)
+		go searchReplaceInFile(filename, search, replace, wg)
+	}
+	wg.Wait()
+
+	if *verbose {
+		printChanges()
+	}
+	return nil
+}
+
 func loadArgs() []string {
 	args := flag.Args()
 
@@ -62,32 +91,12 @@ func loadArgs() []string {
 	return args
 }
 
-func run() error {
-	flag.Parse()
-
-	args := loadArgs()
-
-	if len(args) < 3 {
-		return errors.New("you need to run this script with at least one file")
+func splitCheck() ([]string, error) {
+	lineRange := strings.Split(*lineRange, ":")
+	if len(lineRange) != 2 {
+		return nil, errors.New("give range like this: n:m")
 	}
-
-	search := args[0]
-	replace := args[1]
-
-	wg := new(sync.WaitGroup)
-
-	for _, filename := range args[2:] {
-		wg.Add(1)
-		go searchReplaceInFile(filename, search, replace, wg)
-	}
-
-	wg.Wait()
-
-	if *verbose {
-		printChanges()
-	}
-
-	return nil
+	return lineRange, nil
 }
 
 func searchReplaceInFile(filename, search, replace string, wg *sync.WaitGroup) {
@@ -98,12 +107,10 @@ func searchReplaceInFile(filename, search, replace string, wg *sync.WaitGroup) {
 	}
 
 	wg1 := new(sync.WaitGroup)
-
 	for _, file := range files {
 		wg1.Add(1)
 		go readAndWrite(file, search, replace, wg1)
 	}
-
 	wg1.Wait()
 	wg.Done()
 }
@@ -145,7 +152,7 @@ func read(filename, search, replace string) ([]string, error) {
 	s.Split(bufio.ScanLines)
 
 	for lineNum := 0; s.Scan(); lineNum++ {
-		if *line != -1 && *line != lineNum+1 {
+		if *line != -1 && *line != lineNum+1 || lineNum < start || end != -1 && end <= lineNum {
 			contents = append(contents, s.Text())
 			continue
 		}
@@ -195,4 +202,40 @@ func printChanges() {
 			fmt.Printf("%d:\t%s%s\t\t\t%s%s%s\n", line.line, RED, line.before, GREEN, line.after, BLACK)
 		}
 	}
+}
+
+func parseLineRange() (err error) {
+	if *lineRange == ":" {
+		return nil
+	}
+
+	lineRangeRunes := []rune(*lineRange)
+
+	if lineRangeRunes[0] == rune(':') {
+		lineRange, err := splitCheck()
+		if err != nil {
+			return err
+		}
+		end, err = strconv.Atoi(lineRange[1])
+		return err
+	} else if lineRangeRunes[len(lineRangeRunes)-1] == rune(':') {
+		lineRange, err := splitCheck()
+		if err != nil {
+			return err
+		}
+		start, err = strconv.Atoi(lineRange[0])
+		return err
+	}
+
+	lineRange, err := splitCheck()
+	if err != nil {
+		return err
+	}
+
+	start, err = strconv.Atoi(lineRange[0])
+	if err != nil {
+		return err
+	}
+	end, err = strconv.Atoi(lineRange[1])
+	return err
 }
