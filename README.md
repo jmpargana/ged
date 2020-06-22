@@ -2,7 +2,7 @@
 [![GoDoc](https://godoc.org/github.com/jmpargana/ged?status.svg)](https://godoc.org/github.com/jmpargana/ged)
 [![Build
 Status](https://travis-ci.org/jmpargana/ged.svg?branch=master)](https://travis-ci.org/jmpargana/ged)
-[![License](http://img.shields.io/:license-mit-blue.svg?style=flat-square)](http://badges.mit-license.org)
+[![License](http://img.shields.io/:license-mit-blue.svg?style=flat-square)](LICENSE)
 
 ged is my version of the *sed* command line utility to find and replace text 
 with a simpler syntax and prettier output that runs concurrently as is written
@@ -32,5 +32,5 @@ go install
 
 [![License](http://img.shields.io/:license-mit-blue.svg?style=flat-square)](http://badges.mit-license.org)
 
-- **[MIT License](https://opensource.org/licenses/mit-license.php)**
+- **[MIT License](LICENSE)**
 - Copyright 2020 © João Pargana
