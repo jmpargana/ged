@@ -1,7 +1,6 @@
 # ged
 [![GoDoc](https://godoc.org/github.com/jmpargana/ged?status.svg)](https://godoc.org/github.com/jmpargana/ged)
-[![Build
-Status](https://travis-ci.org/jmpargana/ged.svg?branch=master)](https://travis-ci.org/jmpargana/ged)
+[![BuildStatus](https://travis-ci.org/jmpargana/ged.svg?branch=master)](https://travis-ci.org/jmpargana/ged)
 [![License](http://img.shields.io/:license-mit-blue.svg?style=flat-square)](LICENSE)
 
 ged is my version of the *sed* command line utility to find and replace text 
